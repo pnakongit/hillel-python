@@ -23,16 +23,16 @@ def generate_password():
     int_symbol = (48, 57)
     special_symbols = (33, 47)
 
-    some_lst = [ascii_lowercase, ascii_uppercase, int_symbol, special_symbols]
+    all_chars = [ascii_lowercase, ascii_uppercase, int_symbol, special_symbols]
     base_pass = []
 
     counter = 0
     while counter < pass_len:
-        if counter < len(some_lst):
-            base_pass.append(chr(random.randint(*some_lst[counter])))
+        if counter < len(all_chars):
+            base_pass.append(chr(random.randint(*all_chars[counter])))
             counter += 1
         else:
-            random_symbol = random.choice(some_lst)
+            random_symbol = random.choice(all_chars)
             base_pass.append(chr(random.randint(*random_symbol)))
             counter += 1
 
@@ -43,13 +43,12 @@ def generate_password():
 
 @app.route('/calculate_average_csv')
 def calculate_average_csv():
-    with open('hw.csv', 'r') as f_obj:
-        read_var = csv.reader(f_obj)
-        read_var = list(read_var)
+    with open('hw.csv', 'r') as csv_file_object:
+        csv_data = list(csv.reader(csv_file_object))
 
     height_lst = []
     weight_lst = []
-    for line in read_var[1:]:
+    for line in csv_data[1:]:
         height_lst.append(float(line[1]))
         weight_lst.append(float(line[2]))
 
@@ -62,11 +61,11 @@ def calculate_average_csv():
 
 @app.route('/calculate_average_pandas')
 def calculate_average_pandas():
-    with open('hw.csv', 'r') as f_obj:
-        read_var = pd.read_csv(f_obj)
+    with open('hw.csv', 'r') as csv_file_object:
+        csv_data  = pd.read_csv(csv_file_object)
 
-    average_high = round(read_var[' Height(Inches)'].mean())
-    average_weight = round(read_var[' Weight(Pounds)'].mean())
+    average_high = round(csv_data[' Height(Inches)'].mean())
+    average_weight = round(csv_data[' Weight(Pounds)'].mean())
 
     return f'Average high = "{average_high}" \n' \
            f'Average weight = "{average_weight}"'
