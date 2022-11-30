@@ -125,26 +125,20 @@ def generate_students(limit):
 
 )
 def get_bitcoin_value(currency, count):
-    response_rate = requests.get('https://bitpay.com/api/rates')
-    response_currencies = requests.get('https://bitpay.com/currencies')
+    response_rate = requests.get(f'https://bitpay.com/rates/{currency}').json()
+    response_currencies = requests.get('https://bitpay.com/currencies').json()
 
-    response_rate = response_rate.json()
-    response_currencies = response_currencies.json()
+    if 'error' in response_rate:
+        return response_rate['error']
 
-    currency_rate = None
-    for elem in response_rate:
-        if currency == elem['code']:
-            currency_rate = elem.get('rate')
-            break
-    else:
-        return f'currency "{currency}" not found'
+    currency_rate = response_rate['data']['rate']
 
     currency_symbol = None
     for elem in response_currencies.get('data'):
         if currency == elem['code']:
             currency_symbol = elem['symbol']
 
-    return f'Currency: "{currency}" | rate: "{currency_rate * count}" | symbol: "{currency_symbol}"'
+    return f'Currency: "{currency}" | rate: "{currency_rate*count}" | symbol: "{currency_symbol}"'
 
 
 app.run(debug=True)
