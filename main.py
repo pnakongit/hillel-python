@@ -1,8 +1,12 @@
-from flask import Flask
 import random
+import requests
 import csv
 import pandas as pd
 
+from faker import Faker
+from flask import Flask
+from webargs import validate, fields
+from webargs.flaskparser import use_kwargs
 
 app = Flask(__name__)
 
@@ -11,7 +15,10 @@ app = Flask(__name__)
 def hello_world():
     home_page = f"<p> Генератор паролів - /generate_password <p>" \
                 f"<p> Середнє значення csv - /calculate_average_csv </p>" \
-                f"<p> Середнє значення pandas - /calculate_average_pandas </p>"
+                f"<p> Середнє значення pandas - /calculate_average_pandas </p>" \
+                f"<p> Генератор данних студентів - /generate_students </p>" \
+                f"<p> Курс бітка - /bitcoin_rate </p>"
+
     return home_page
 
 
@@ -62,13 +69,82 @@ def calculate_average_csv():
 @app.route('/calculate_average_pandas')
 def calculate_average_pandas():
     with open('hw.csv', 'r') as csv_file_object:
-        csv_data  = pd.read_csv(csv_file_object)
+        csv_data = pd.read_csv(csv_file_object)
 
     average_high = round(csv_data[' Height(Inches)'].mean())
     average_weight = round(csv_data[' Weight(Pounds)'].mean())
 
     return f'Average high = "{average_high}" \n' \
            f'Average weight = "{average_weight}"'
+
+
+@app.route('/generate_students')
+@use_kwargs(
+    {
+        'limit': fields.Int(
+            missing=5,
+            validate=[validate.Range(min=1, max=1000)],
+        )
+    },
+    location='query'
+)
+def generate_students(limit):
+    faker_data = Faker()
+    students_list = [
+        ['First_name', 'Last_name', 'Email', 'Password', 'Birthday']
+    ]
+    counter = 0
+    while counter < limit:
+        students_list.append([
+            faker_data.first_name(),
+            faker_data.last_name(),
+            faker_data.email(),
+            faker_data.password(),
+            str(faker_data.date_of_birth(minimum_age=18, maximum_age=23))
+        ])
+        counter += 1
+
+    with open('students.csv', 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerows(students_list)
+
+    return students_list
+
+
+@app.route('/bitcoin_rate')
+@use_kwargs(
+    {
+        'currency': fields.Str(
+            load_default='USD',
+        ),
+        'count': fields.Int(
+            missing=1,
+        )
+    },
+    location='query'
+
+)
+def get_bitcoin_value(currency, count):
+    response_rate = requests.get('https://bitpay.com/api/rates')
+    response_currencies = requests.get('https://bitpay.com/currencies')
+
+    response_rate = response_rate.json()
+    response_currencies = response_currencies.json()
+
+    currency_rate = None
+    for elem in response_rate:
+        if currency == elem['code']:
+            currency_rate = elem.get('rate')
+            break
+    else:
+        return f'currency "{currency}" not found'
+
+    currency_symbol = None
+    for elem in response_currencies.get('data'):
+        if currency == elem['code']:
+            currency_symbol = elem['symbol']
+
+    return f'Currency: "{currency}" | rate: "{currency_rate * count}" | symbol: "{currency_symbol}"'
 
 
 app.run(debug=True)
