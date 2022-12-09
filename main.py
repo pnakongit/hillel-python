@@ -2,9 +2,9 @@ import random
 import requests
 import csv
 import pandas as pd
-
 from faker import Faker
 from flask import Flask
+from database_handler import execute_query
 from webargs import validate, fields
 from webargs.flaskparser import use_kwargs
 
@@ -138,7 +138,71 @@ def get_bitcoin_value(currency, count):
         if currency == elem['code']:
             currency_symbol = elem['symbol']
 
-    return f'Currency: "{currency}" | rate: "{currency_rate*count}" | symbol: "{currency_symbol}"'
+    return f'Currency: "{currency}" | rate: "{currency_rate * count}" | symbol: "{currency_symbol}"'
+
+
+@app.route('/order-price')
+@use_kwargs(
+    {
+        'country': fields.Str(
+            load_default=None
+        )
+    },
+    location='query'
+)
+def order_price(country):
+    query = 'SELECT BillingCountry AS Country, round(sum(UnitPrice * Quantity),0) AS Sales' \
+            ' FROM (SELECT UnitPrice, Quantity, BillingCountry ' \
+            'FROM invoice_items ' \
+            'JOIN Invoices ON invoice_items.InvoiceId = invoices.InvoiceId)'
+
+    if country:
+        query += f' WHERE BillingCountry = "{country}"'
+    else:
+        query += 'GROUP BY BillingCountry'
+
+    record = execute_query(query)
+    return record
+
+
+@app.route('/get-all-info-about-track')
+@use_kwargs(
+    {
+        'track_ID': fields.Int(
+            missing=None
+        )
+    },
+    location='query'
+)
+def get_all_info_about_track(track_ID):
+    query = 'SELECT * '\
+            'FROM tracks '\
+                    'LEFT JOIN genres ON tracks.GenreId = genres.GenreId '\
+                    'LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId '\
+                    'LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId '\
+                    'LEFT JOIN artists ON albums.ArtistId = artists.ArtistId '\
+                    'LEFT JOIN playlist_track ON tracks.TrackId = playlist_track.TrackId '\
+                    'LEFT JOIN playlists ON playlist_track.PlaylistId = playlists.PlaylistId'
+
+    if track_ID:
+        query += f' WHERE tracks.TrackId = {track_ID}'
+
+    record = execute_query(query)
+
+    return record
+
+
+@app.route('/get-all-time-of-all-tracks')
+def get_all_time_of_all_tracks():
+    query = 'SELECT sum(tracks.Milliseconds) as MillisecondsTime '\
+            'FROM albums '\
+            'LEFT JOIN tracks ON albums.AlbumId = tracks.AlbumId '
+    record = execute_query(query)
+
+
+    return f'Тривалість всіх треків в альбомах {record[0][0]/3_600_000}'
 
 
 app.run(debug=True)
+
+
