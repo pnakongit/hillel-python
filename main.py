@@ -175,14 +175,14 @@ def order_price(country):
     location='query'
 )
 def get_all_info_about_track(track_ID):
-    query = 'SELECT * '\
-            'FROM tracks '\
-                    'LEFT JOIN genres ON tracks.GenreId = genres.GenreId '\
-                    'LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId '\
-                    'LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId '\
-                    'LEFT JOIN artists ON albums.ArtistId = artists.ArtistId '\
-                    'LEFT JOIN playlist_track ON tracks.TrackId = playlist_track.TrackId '\
-                    'LEFT JOIN playlists ON playlist_track.PlaylistId = playlists.PlaylistId'
+    query = 'SELECT * ' \
+            'FROM tracks ' \
+            'LEFT JOIN genres ON tracks.GenreId = genres.GenreId ' \
+            'LEFT JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId ' \
+            'LEFT JOIN albums ON tracks.AlbumId = albums.AlbumId ' \
+            'LEFT JOIN artists ON albums.ArtistId = artists.ArtistId ' \
+            'LEFT JOIN playlist_track ON tracks.TrackId = playlist_track.TrackId ' \
+            'LEFT JOIN playlists ON playlist_track.PlaylistId = playlists.PlaylistId'
 
     if track_ID:
         query += f' WHERE tracks.TrackId = {track_ID}'
@@ -194,15 +194,36 @@ def get_all_info_about_track(track_ID):
 
 @app.route('/get-all-time-of-all-tracks')
 def get_all_time_of_all_tracks():
-    query = 'SELECT sum(tracks.Milliseconds) as MillisecondsTime '\
-            'FROM albums '\
+    query = 'SELECT sum(tracks.Milliseconds) as MillisecondsTime ' \
+            'FROM albums ' \
             'LEFT JOIN tracks ON albums.AlbumId = tracks.AlbumId '
     record = execute_query(query)
 
+    return f'Тривалість всіх треків в альбомах {record[0][0] / 3_600_000}'
 
-    return f'Тривалість всіх треків в альбомах {record[0][0]/3_600_000}'
+
+@app.route('/stats-by-city')
+@use_kwargs(
+    {
+        'genre': fields.Str(
+            required=True
+        )
+    },
+    location='query'
+)
+def stats_by_city(genre):
+    query = 'SELECT max(CountCity), City ' \
+            'FROM (SELECT count(*) AS CountCity, BillingCity AS City ' \
+            'FROM genres ' \
+            'LEFT JOIN tracks on genres.GenreId = tracks.GenreId ' \
+            'LEFT JOIN invoice_items on tracks.TrackId = invoice_items.TrackId ' \
+            'LEFT JOIN invoices on invoice_items.InvoiceId = invoices.InvoiceId ' \
+            'WHERE invoices.BillingCity IS NOT null AND genres.Name = ? ' \
+            'GROUP BY BillingCity)'
+
+    record = execute_query(query, args=(genre,))
+
+    return record if record[0] != (None, None) else f'Genre "{genre}" not found'
 
 
 app.run(debug=True)
-
-
