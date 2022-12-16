@@ -2,13 +2,13 @@ import math
 
 
 class Frange:
-    def __init__(self, first_arg=None, second_arg=None, step=1):
-        if second_arg is None:
+    def __init__(self, start=None, stop=None, step=1):
+        if stop is None:
             self.start = 0
-            self.stop = first_arg
+            self.stop = start
         else:
-            self.start = first_arg
-            self.stop = second_arg
+            self.start = start
+            self.stop = stop
         self.step = step
 
     def __iter__(self):
