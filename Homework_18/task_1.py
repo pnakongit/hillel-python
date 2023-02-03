@@ -1,24 +1,6 @@
 # https://www.codewars.com/kata/52b7ed099cdc285c300001cd/train/python
 
 def sum_of_intervals(intervals):
-    intervals_set = set()
-    for i in intervals:
-        for y in range(*i):
-            intervals_set.add((y, y + 1))
-
-    return len(intervals_set)
-
-
-assert (sum_of_intervals([(1, 5)]) == 4)
-assert (sum_of_intervals([(1, 5), (6, 10)]) == 8)
-assert (sum_of_intervals([(1, 5), (1, 5)]) == 4)
-assert (sum_of_intervals([(1, 4), (7, 10), (3, 5)]) == 7)
-
-print('SUCCESS')
-
-
-# перший варіант валився на великих числах, тому зробив ще в одноме варіанті
-def sum_of_intervals(intervals):
     sort_intervals = sorted(intervals)
 
     correct_intervals = [sort_intervals[0]]
