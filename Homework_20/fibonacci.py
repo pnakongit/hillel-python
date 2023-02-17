@@ -19,7 +19,8 @@ class Fibonacci:
             self.cache.append(fib_number)
 
         return self.cache[n]
-
+a = Fibonacci()
+print(a(0))
 
 class TestFibonacci(TestCase):
     fibonacci = Fibonacci()
@@ -28,8 +29,7 @@ class TestFibonacci(TestCase):
         self.fibonacci.cache = [0, 1]
 
     def test_fibonacci_zero(self):
-        with self.assertRaises(ValueError):
-            self.fibonacci(-1)
+        self.assertEqual(self.fibonacci(0),0)
 
     def test_fibonacci_negative(self):
         with self.assertRaises(ValueError):
@@ -46,14 +46,13 @@ class TestFibonacci(TestCase):
         with self.assertRaisesRegex(ValueError, f'Positive integer number expected, got "{value}"'):
             self.fibonacci(value)
 
-    def test_fibonacci_positive_case_five(self):
-        self.assertEqual(self.fibonacci(5), 5)
-
     def test_fibonacci_positive_case_ten(self):
         self.assertEqual(self.fibonacci(10), 55)
 
-    def test_fibonacci_negative_case_seven(self):
-        self.assertNotEqual(self.fibonacci(7), 10)
+    def test_fibonacci_positive_big_value(self):
+        self.assertEqual(
+            self.fibonacci(400), 176023680645013966468226945392411250770384383304492191886725992896575345044216019675
+        )
 
     def test_fibonacci_negative_case_nine(self):
         self.assertNotEqual(self.fibonacci(9), 55)
