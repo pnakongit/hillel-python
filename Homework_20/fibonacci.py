@@ -19,8 +19,7 @@ class Fibonacci:
             self.cache.append(fib_number)
 
         return self.cache[n]
-a = Fibonacci()
-print(a(0))
+
 
 class TestFibonacci(TestCase):
     fibonacci = Fibonacci()
@@ -29,7 +28,7 @@ class TestFibonacci(TestCase):
         self.fibonacci.cache = [0, 1]
 
     def test_fibonacci_zero(self):
-        self.assertEqual(self.fibonacci(0),0)
+        self.assertEqual(self.fibonacci(0), 0)
 
     def test_fibonacci_negative(self):
         with self.assertRaises(ValueError):
