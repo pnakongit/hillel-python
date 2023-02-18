@@ -35,7 +35,7 @@ class TestFormattedName(TestCase):
     def test_formatted_name_all_lowercase(self):
         self.assertEqual(formatted_name('pavlo', 'nakon', 'serg'), 'Pavlo Serg Nakon')
 
-    def formatted_name_return_type_value(self):
+    def test_formatted_name_return_type_value(self):
         self.assertIsInstance(formatted_name('Pavlo', 'Nakon', 'Serg'), str)
 
 
